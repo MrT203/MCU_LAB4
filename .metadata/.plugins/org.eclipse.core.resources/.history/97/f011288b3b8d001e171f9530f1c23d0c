@@ -1,0 +1,13 @@
+/*
+ * tasks.h
+ *
+ *  Created on: Nov 24, 2023
+ *      Author: Administrator
+ */
+
+#ifndef INC_TASKS_H_
+#define INC_TASKS_H_
+
+#include "main.h"
+
+#endif /* INC_TASKS_H_ */

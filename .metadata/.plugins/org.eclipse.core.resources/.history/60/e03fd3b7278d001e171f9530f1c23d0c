@@ -1,0 +1,14 @@
+/*
+ * scheduler.h
+ *
+ *  Created on: Nov 23, 2023
+ *      Author: Administrator
+ */
+
+#ifndef INC_SCHEDULER_H_
+#define INC_SCHEDULER_H_
+
+#define SCH_MAX_TASKS   5
+#define NO_TASK_ID      0
+
+#endif /* INC_SCHEDULER_H_ */
