@@ -1,0 +1,49 @@
+/*
+ * scheduler1.h
+ *
+ *  Created on: Nov 28, 2023
+ *      Author: Administrator
+ */
+
+#ifndef INC_SCHEDULER1_H_
+#define INC_SCHEDULER1_H_
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+#define SCH_MAX_TASKS 10
+#define NO_TASK_ID 0
+#define TICK 10
+
+typedef struct {
+    void (*pTask)(void);
+    uint32_t Delay;
+    uint32_t Period;
+    uint8_t Runme;
+    uint32_t taskID;
+    uint32_t priority;
+} sTask;
+
+typedef struct {
+    sTask* tasks;
+    uint8_t size;
+    uint8_t capacity;
+} PriorityQueue;
+extern uint8_t current_index_task;
+
+
+void SCH_Init(void);
+void SCH_Update(void);
+uint8_t SCH_Add_Task(void (*pFunction)(), uint32_t DELAY, uint32_t PERIOD);
+void SCH_Dispatch_Tasks(void);
+uint8_t SCH_Delete_Task(const uint8_t TASK_INDEX);
+void SCH_Init(void);
+
+void PQ_Init(uint8_t maxTasks);
+void PQ_Insert(sTask task);
+sTask PQ_Peek(void);
+void PQ_Pop(void);
+void PQ_HeapifyUp(uint8_t index);
+void PQ_HeapifyDown(uint8_t index);
+#endif /* INC_SCHEDULER1_H_ */

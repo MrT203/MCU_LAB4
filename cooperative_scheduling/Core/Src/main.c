@@ -95,9 +95,11 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  // Init scheduler
   SCH_Init();
 
   // Normal tasks
+
   SCH_Add_Task(task_1, 0, 500);
   SCH_Add_Task(task_2, 1, 1000);
   SCH_Add_Task(task_3, 2, 1500);

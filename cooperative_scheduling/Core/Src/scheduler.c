@@ -38,7 +38,7 @@ void SCH_Update(void){
     }
 }
 
-uint8_t SCH_Add_Task(void (*pFunction)(void), unsigned int DELAY, unsigned int PERIOD){
+uint8_t SCH_Add_Task(void (*pFunction)(void), uint32_t DELAY, uint32_t PERIOD){
 	uint8_t Index = 0;
     // First find a gap in the array (if there is one)
     while ((SCH_tasks_G[Index].pTask != 0) && (Index < SCH_MAX_TASKS)){
@@ -46,7 +46,7 @@ uint8_t SCH_Add_Task(void (*pFunction)(void), unsigned int DELAY, unsigned int P
     }
     // Have we reached the end of the list ?
     if (Index == SCH_MAX_TASKS){
-        // Task list is f ull
+        // Task list is full
         // Set the global error variable
         // Error_code_G = ERROR_SCH_TOO_MANY_TASKS;
         // Also return an error code
@@ -66,7 +66,7 @@ uint8_t SCH_Add_Task(void (*pFunction)(void), unsigned int DELAY, unsigned int P
 void SCH_Dispatch_Tasks(void){
 	uint8_t Index;
     // Dispatches (runs ) the next task ( i f one i s ready )
-    for (Index = 0; Index < SCH_MAX_TASKS; Index++){
+    for (Index = 0; Index < current_index_task; Index++){
         // Co task can thuc hien
         if (SCH_tasks_G[Index].Runme > 0){
             (*SCH_tasks_G[Index].pTask)(); // Run the task
@@ -91,10 +91,8 @@ uint8_t SCH_Delete_Task(const uint8_t TASK_INDEX) {
 		return TASK_INDEX;
 	// Shift left 1
 	for (int i = TASK_INDEX; i < SCH_MAX_TASKS-1; i++){
-		SCH_tasks_G[i].pTask = SCH_tasks_G[i+1].pTask;
-		SCH_tasks_G[i].Delay = SCH_tasks_G[i+1].Delay;
-		SCH_tasks_G[i].Period = SCH_tasks_G[i+1].Period;
-		SCH_tasks_G[i].Runme =  SCH_tasks_G[i+1].Runme;
+		SCH_tasks_G[i] = SCH_tasks_G[i+1];
+
 	}
 		// Reset SCH_tasks_G[SCH_MAX_TASKS-1]
 	    SCH_tasks_G[SCH_MAX_TASKS -1].pTask = 0x0000 ;

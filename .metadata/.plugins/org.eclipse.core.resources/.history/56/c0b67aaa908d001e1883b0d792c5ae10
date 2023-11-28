@@ -1,0 +1,13 @@
+/*
+ * scheduler1.h
+ *
+ *  Created on: Nov 28, 2023
+ *      Author: Administrator
+ */
+
+#ifndef INC_SCHEDULER1_H_
+#define INC_SCHEDULER1_H_
+
+extern uint8_t current_index_task = 0;
+
+#endif /* INC_SCHEDULER1_H_ */

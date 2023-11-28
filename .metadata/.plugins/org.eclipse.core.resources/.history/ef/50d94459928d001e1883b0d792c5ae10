@@ -1,0 +1,185 @@
+/*
+ * scheduler1.c
+ *
+ *  Created on: Nov 28, 2023
+ *      Author: Administrator
+ */
+
+#include "scheduler1.h"
+
+typedef struct {
+    void (*pTask)(void);
+    uint32_t Delay;
+    uint32_t Period;
+    uint8_t Runme;
+    uint32_t taskID;
+    uint32_t priority;
+} sTask;
+
+typedef struct {
+    sTask* tasks;
+    uint8_t size;
+    uint8_t capacity;
+} PriorityQueue;
+
+PriorityQueue pq;
+
+sTask SCH_tasks_G[SCH_MAX_TASKS];
+uint8_t current_index_task = 0;
+
+void PQ_Init(uint8_t maxTasks);
+void PQ_Insert(sTask task);
+sTask PQ_Peek(void);
+void PQ_Pop(void);
+void PQ_HeapifyUp(uint8_t index);
+void PQ_HeapifyDown(uint8_t index);
+
+
+
+void PQ_Init(uint8_t maxTasks) {
+    pq.tasks = (sTask*)malloc(sizeof(sTask) * maxTasks);
+    pq.size = 0;
+    pq.capacity = maxTasks;
+}
+
+void PQ_Insert(sTask task) {
+    if (pq.size == pq.capacity) {
+        // Handle or report error when the engine is full
+        return;
+    }
+
+    pq.tasks[pq.size] = task;
+    pq.size++;
+    PQ_HeapifyUp(pq.size - 1);
+}
+
+sTask PQ_Peek(void) {
+    if (pq.size > 0) {
+        return pq.tasks[0];
+    }
+
+    sTask emptyTask;
+    emptyTask.pTask = NULL;
+    return emptyTask;
+}
+
+void PQ_Pop(void) {
+    if (pq.size == 0) {
+        return;
+    }
+
+    pq.tasks[0] = pq.tasks[pq.size - 1];
+    pq.size--;
+    PQ_HeapifyDown(0);
+}
+
+void PQ_HeapifyUp(uint8_t index) {
+    uint8_t parent = (index - 1) / 2;
+    while (index > 0 && pq.tasks[index].priority > pq.tasks[parent].priority) {
+        sTask temp = pq.tasks[index];
+        pq.tasks[index] = pq.tasks[parent];
+        pq.tasks[parent] = temp;
+
+        index = parent;
+        parent = (index - 1) / 2;
+    }
+}
+
+void PQ_HeapifyDown(uint8_t index) {
+    uint8_t leftChild = 2 * index + 1;
+    uint8_t rightChild = 2 * index + 2;
+    uint8_t largest = index;
+
+    if (leftChild < pq.size && pq.tasks[leftChild].priority > pq.tasks[largest].priority) {
+        largest = leftChild;
+    }
+
+    if (rightChild < pq.size && pq.tasks[rightChild].priority > pq.tasks[largest].priority) {
+        largest = rightChild;
+    }
+
+    if (largest != index) {
+        sTask temp = pq.tasks[index];
+        pq.tasks[index] = pq.tasks[largest];
+        pq.tasks[largest] = temp;
+
+        PQ_HeapifyDown(largest);
+    }
+}
+
+void SCH_Init(void) {
+    while (current_index_task != 0) {
+        SCH_Delete_Task(0);
+    }
+}
+
+void SCH_Update(void) {
+    if (pq.size == 0) {
+        return;
+    }
+
+    if (pq.tasks[0].Delay == 0) {
+        pq.tasks[0].Runme += 1;
+        if (pq.tasks[0].Period) {
+            pq.tasks[0].Delay = pq.tasks[0].Period;
+        } else {
+            PQ_Pop();
+        }
+    } else {
+        pq.tasks[0].Delay -= 1;
+    }
+}
+
+uint8_t SCH_Add_Task(void (*pFunction)(void), uint32_t DELAY, uint32_t PERIOD) {
+    if (current_index_task >= SCH_MAX_TASKS) {
+        return NO_TASK_ID;
+    }
+
+    SCH_tasks_G[current_index_task].pTask = pFunction;
+    SCH_tasks_G[current_index_task].Delay = DELAY;
+    SCH_tasks_G[current_index_task].Period = PERIOD;
+    SCH_tasks_G[current_index_task].Runme = 0;
+    SCH_tasks_G[current_index_task].taskID = current_index_task;
+    SCH_tasks_G[current_index_task].priority = DELAY;
+
+    PQ_Insert(SCH_tasks_G[current_index_task]);
+
+    current_index_task++;
+    return SCH_tasks_G[current_index_task - 1].taskID;
+}
+
+uint8_t SCH_Delete_Task(const uint8_t TASK_INDEX) {
+    if (TASK_INDEX >= current_index_task) {
+        return 0;
+    }
+
+    for (uint8_t i = 0; i < pq.size; i++) {
+        if (pq.tasks[i].taskID == TASK_INDEX) {
+            pq.tasks[i] = pq.tasks[pq.size - 1];
+            pq.size--;
+            PQ_HeapifyDown(i);
+            PQ_HeapifyUp(i);
+            return 1;
+        }
+    }
+
+    return 0; // Task with given index not found
+}
+
+void SCH_Dispatch_Tasks(void) {
+    uint8_t index;
+
+    for (index = 0; index < pq.size; index++) {
+        if (pq.tasks[index].Runme > 0) {
+            (*(pq.tasks[index].pTask))();
+
+            if (pq.tasks[index].Period == 0) {
+                SCH_Delete_Task(pq.tasks[index].taskID);
+            }
+
+            pq.tasks[index].Runme--;
+        }
+    }
+}
+
+
